@@ -1,0 +1,185 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 // --- JAVASCRIPT CORE LOGIC ---\
+\
+// Function 1: UPDATE THE LIVE RESUME PREVIEW\
+function updateResumePreview() \{\
+    // 1. Get user inputs\
+    const name = document.getElementById('name').value;\
+    const title = document.getElementById('title').value;\
+    const email = document.getElementById('email').value;\
+    const summary = document.getElementById('summary').value;\
+    const skills = document.getElementById('skills').value;\
+    const jobTitle = document.getElementById('jobTitle').value;\
+    const company = document.getElementById('company').value;\
+    const bullets = document.getElementById('bullets').value;\
+    \
+    const outputDiv = document.getElementById('resume-output');\
+\
+    // Process skills into a list of <li> elements\
+    const skillList = skills.split(',')\
+        .map(s => s.trim())\
+        .filter(s => s !== '')\
+        .map(s => `<li>$\{s\}</li>`)\
+        .join('');\
+\
+    // Process bullet points into a list of <li> elements\
+    const bulletList = bullets.split('\\n')\
+        .map(b => b.trim())\
+        .filter(b => b !== '')\
+        .map(b => `<li>$\{b\}</li>`)\
+        .join('');\
+\
+    // 2. Build the HTML for the resume output\
+    outputDiv.innerHTML = `\
+        <div class="header">\
+            <h1>$\{name || 'Your Name Here'\}</h1>\
+            <p>$\{title || 'Professional Title'\}</p>\
+            <p>$\{email || 'Email Address'\}</p>\
+        </div>\
+\
+        $\{summary ? `\
+        <h3>PROFESSIONAL SUMMARY</h3>\
+        <p>$\{summary\}</p>\
+        ` : ''\}\
+\
+        $\{skills ? `\
+        <h3>SKILLS</h3>\
+        <ul class="skills-list">$\{skillList\}</ul>\
+        ` : ''\}\
+\
+        $\{jobTitle ? `\
+        <h3>EXPERIENCE</h3>\
+        <div class="job-entry">\
+            <strong>$\{jobTitle\} at $\{company\}</strong>\
+            <p>20XX - Present</p>\
+            <ul>$\{bulletList\}</ul>\
+        </div>\
+        ` : ''\}\
+    `;\
+\
+    // 3. Re-run suggestions automatically after every update\
+    runAISuggestions();\
+\}\
+\
+\
+// Function 2: THE "AI" SUGGESTION LOGIC (ATS Scoring)\
+function runAISuggestions() \{\
+    const summary = document.getElementById('summary').value.trim();\
+    const skills = document.getElementById('skills').value.split(',').filter(s => s.trim() !== '');\
+    const bullets = document.getElementById('bullets').value.split('\\n').filter(b => b.trim() !== '');\
+    \
+    const suggestionList = document.getElementById('suggestion-list');\
+    const scoreElement = document.getElementById('ats-score');\
+    suggestionList.innerHTML = ''; // Clear previous suggestions\
+    let score = 50; // Start with a base score of 50\
+\
+    // --- AI/ATS RULES ---\
+    const rules = [\
+        // CRITICAL ISSUES (Negative points)\
+        \{ \
+            condition: !summary, \
+            message: "CRITICAL: Missing Professional Summary! ATS systems often discard resumes without one.", \
+            points: -25 \
+        \},\
+        \{\
+            condition: bullets.length === 0 && document.getElementById('jobTitle').value.trim() !== '',\
+            message: "CRITICAL: Experience section is missing bulleted achievements. You must use achievements, not duties.",\
+            points: -20\
+        \},\
+        \
+        // OPTIMIZATION ISSUES (Minor deductions)\
+        \{ \
+            condition: summary.split(' ').length < 30, \
+            message: `Summary is too short ($\{summary.split(' ').length\} words). Aim for 50-80 words to optimize keywords.`,\
+            points: -10 \
+        \},\
+        \{ \
+            condition: skills.length < 8, \
+            message: `Only $\{skills.length\} skills listed. Target 10-15 hard skills for comprehensive ATS coverage.`,\
+            points: -10\
+        \},\
+        \{\
+            condition: bullets.length < 3 && bullets.length > 0,\
+            message: `Only $\{bullets.length\} bullet points for your job. Aim for 3-5 action-oriented achievements per role.`,\
+            points: -5\
+        \},\
+        \
+        // BONUS/GOOD PRACTICE (Positive points)\
+        \{\
+            condition: bullets.some(b => b.toLowerCase().includes('led') || b.toLowerCase().includes('managed')),\
+            message: "BONUS: Great use of leadership verbs ('led', 'managed'). Keep it up!",\
+            points: 5,\
+            isBonus: true\
+        \}\
+    ];\
+\
+    // Evaluate rules and update score\
+    rules.forEach(rule => \{\
+        if (rule.condition) \{\
+            const li = document.createElement('li');\
+            li.textContent = rule.message;\
+            // Add critical/bonus styling\
+            if (rule.points < 0 && !rule.isBonus) \{\
+                li.style.color = 'var(--color-text-accent)'; // Highlight warnings in gold\
+            \}\
+            if (rule.points > 0 && rule.isBonus) \{\
+                li.style.color = '#4CAF50'; // Highlight bonuses in green\
+            \}\
+            suggestionList.appendChild(li);\
+            score += rule.points;\
+        \}\
+    \});\
+\
+    // Ensure score is between 0 and 100\
+    score = Math.max(0, Math.min(100, score)); \
+    \
+    // Update Score display\
+    scoreElement.textContent = `ATS Score: $\{score\}/100`;\
+\
+    // Update color based on score\
+    scoreElement.classList.remove('score-low', 'score-medium', 'score-high');\
+    if (score < 60) \{\
+        scoreElement.classList.add('score-low');\
+    \} else if (score < 85) \{\
+        scoreElement.classList.add('score-medium');\
+    \} else \{\
+        scoreElement.classList.add('score-high');\
+    \}\
+\
+    // Add a positive message if everything looks good\
+    if (suggestionList.children.length === 0) \{\
+        const li = document.createElement('li');\
+        li.textContent = "Perfect! Your resume meets all advanced ATS criteria.";\
+        li.style.color = '#4CAF50';\
+        suggestionList.appendChild(li);\
+        scoreElement.textContent = `ATS Score: 100/100`;\
+        scoreElement.classList.add('score-high');\
+    \}\
+\}\
+\
+\
+// Function 3: DOWNLOAD AS PDF\
+document.getElementById('download-btn').addEventListener('click', () => \{\
+    const element = document.getElementById('resume-output');\
+    \
+    // Configuration for the PDF generation\
+    const opt = \{\
+        margin: [10, 10, 10, 10], // Top, Left, Bottom, Right margin (in mm)\
+        filename: 'professional_resume.pdf',\
+        image: \{ type: 'jpeg', quality: 0.98 \},\
+        html2canvas: \{ scale: 3 \}, // Higher scale for better resolution\
+        jsPDF: \{ unit: 'mm', format: 'a4', orientation: 'portrait' \}\
+    \};\
+    \
+    // Use the html2pdf library\
+    html2pdf().set(opt).from(element).save();\
+\});\
+\
+// Initial call to set up the preview and run first check when the page loads\
+document.addEventListener('DOMContentLoaded', updateResumePreview);}

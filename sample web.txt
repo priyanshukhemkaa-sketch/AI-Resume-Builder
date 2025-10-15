@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Builder | CODERUSH</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1 class="logo">AI-RESUME</h1>
+        <button id="download-btn" class="btn primary-btn">Download PDF</button>
+    </header>
+
+    <main class="builder-container">
+        <section class="input-pane">
+            <h2 class="section-title">Your Details</h2>
+            <form id="resume-form">
+                <fieldset class="form-group">
+                    <legend>Contact Information</legend>
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" oninput="updateResumePreview()" placeholder="Alex Johnson">
+
+                    <label for="title">Desired Title/Role</label>
+                    <input type="text" id="title" oninput="updateResumePreview()" placeholder="Senior Frontend Developer">
+
+                    <label for="email">Email</label>
+                    <input type="email" id="email" oninput="updateResumePreview()" placeholder="alex.johnson@email.com">
+                </fieldset>
+
+                <fieldset class="form-group">
+                    <legend>Professional Summary</legend>
+                    <textarea id="summary" rows="4" oninput="updateResumePreview()" placeholder="A brief, powerful summary of your career and goals (3-4 sentences is ideal for ATS)."></textarea>
+                </fieldset>
+
+                <fieldset class="form-group">
+                    <legend>Key Skills</legend>
+                    <textarea id="skills" rows="3" oninput="updateResumePreview()" placeholder="List hard skills, separated by commas (e.g., Python, React, AWS, SQL)."></textarea>
+                </fieldset>
+
+                <fieldset class="form-group">
+                    <legend>Latest Experience</legend>
+                    <label for="jobTitle">Job Title</label>
+                    <input type="text" id="jobTitle" oninput="updateResumePreview()" placeholder="Software Engineer">
+
+                    <label for="company">Company</label>
+                    <input type="text" id="company" oninput="updateResumePreview()" placeholder="TechCorp Innovations">
+                    
+                    <label for="bullets">Achievements (One per line)</label>
+                    <textarea id="bullets" rows="4" oninput="updateResumePreview()" placeholder="Use action verbs. Example: 'Led a team of 3 engineers to deliver 3 products.'"></textarea>
+                </fieldset>
+            </form>
+
+            <div id="ai-suggestions" class="suggestions-box">
+                <h3>💡 AI Review & ATS Score</h3>
+                <p id="ats-score" class="score-low">ATS Score: 0/100</p>
+                <ul id="suggestion-list">
+                    <li>Start typing to run the first review...</li>
+                </ul>
+            </div>
+            
+        </section>
+
+        <section class="preview-pane">
+            <h2 class="section-title">Live Resume Preview</h2>
+            <div id="resume-output" class="resume-template">
+                </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
