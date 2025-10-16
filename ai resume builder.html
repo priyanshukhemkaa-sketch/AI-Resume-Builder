@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIRESUME - AI Resume Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+body { font-family: Arial, sans-serif; background: #1e1e2f; color: #ffffff; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; }
+h1 { margin-top:20px; text-align:center; color:#ffffff; }
+form { background:#2b2b3d; padding:25px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 8px 25px rgba(0,0,0,0.5); }
+label { display:block; margin-top:10px; font-weight:bold; color:#ffffff; }
+input, textarea, select { width:100%; padding:10px; margin-top:5px; border-radius:8px; border:1px solid #555; background:#1f1f2b; color:#fff; }
+button { margin-top:15px; padding:12px 25px; border:none; border-radius:10px; cursor:pointer; background: linear-gradient(90deg, #ff8c00, #ff3e00); color:white; font-size:16px; font-weight:bold; transition:0.3s; }
+button:hover { opacity:0.9; transform: scale(1.03); }
+#resumePreview { margin-top:25px; width:90%; max-width:800px; background:#2b2b3d; padding:25px; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.5); animation:fadeIn 0.5s; }
+.resume-section { margin-bottom:20px; }
+.template1 { font-family: Arial; color:#ffffff; background:#3b3b5a; padding:25px; border-left:6px solid #ff8c00; border-radius:10px; }
+.template2 { font-family:'Times New Roman', serif; color:#ffffff; background:#2b3b4f; padding:25px; border-left:6px solid #00bfff; border-radius:10px; }
+.template3 { font-family:Georgia, serif; color:#ffffff; background:#4f2b2b; padding:25px; border-left:6px solid #ff3399; border-radius:10px; }
+.ai-suggestion { background:#444466; padding:12px; border-radius:8px; margin-top:5px; color:#ffffff; }
+.skills-grid, .projects-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:10px; }
+.skill-item, .project-item { background:#1f1f2b; padding:8px; border-radius:6px; text-align:center; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+</style>
+</head>
+<body>
+<h1>AIRESUME - AI Resume Builder</h1>
+<form id="resumeForm">
+  <label>Name</label><input type="text" id="name">
+  <label>Email</label><input type="email" id="email">
+  <label>Phone</label><input type="text" id="phone">
+  <label>LinkedIn</label><input type="text" id="linkedin">
+  <label>GitHub</label><input type="text" id="github">
+  <label>Summary</label><textarea id="summary" rows="3"></textarea>
+  <label>Skills (comma separated)</label><input type="text" id="skills">
+  <label>Experience</label><textarea id="experience" rows="3"></textarea>
+  <label>Education</label><textarea id="education" rows="3"></textarea>
+  <label>Projects</label><textarea id="projects" rows="3"></textarea>
+  <label>Achievements</label><textarea id="achievements" rows="3"></textarea>
+  <label>Choose Template</label><select id="template">
+    <option value="template1">Template 1</option>
+    <option value="template2">Template 2</option>
+    <option value="template3">Template 3</option>
+  </select>
+  <button type="button" onclick="fillSampleData()">Sample Data</button>
+  <button type="button" onclick="getAISuggestions()">Get AI Suggestions</button>
+  <button type="button" onclick="generateResume()">Generate Resume</button>
+  <button type="button" onclick="downloadPDF()">Download PDF</button>
+</form>
+<div id="resumePreview"></div>
+<script>
+function expandTextAI(text,type='general'){
+    if(!text) return '';
+    switch(type){
+        case 'summary':
+            return text.length<50 ? text + ' Experienced professional with strong skills in software development, problem-solving, and project management, dedicated to creating impactful solutions and continuously learning new technologies.' : text;
+        case 'experience':
+            return text.split('\n').map(line=>line + ' – Successfully managed tasks, collaborated with teams, and delivered high-quality results in challenging environments.').join('<br><br>');
+        case 'projects':
+            return text.split('\n').map(line=>line + ' – Designed and implemented this project using best practices and efficient coding techniques, ensuring functionality and usability.').join('<br><br>');
+        default: return text;
+    }
+}
+
+function fillSampleData(){
+    document.getElementById('name').value='John Doe';
+    document.getElementById('email').value='john.doe@example.com';
+    document.getElementById('phone').value='+1234567890';
+    document.getElementById('linkedin').value='linkedin.com/in/johndoe';
+    document.getElementById('github').value='github.com/johndoe';
+    document.getElementById('summary').value='Passionate web developer';
+    document.getElementById('skills').value='JavaScript, Python, React, CSS, HTML';
+    document.getElementById('experience').value='Software Engineer at XYZ Corp\nFrontend Developer at ABC Ltd';
+    document.getElementById('education').value='B.Sc in Computer Science';
+    document.getElementById('projects').value='Portfolio Website\nChatbot Application';
+    document.getElementById('achievements').value='Hackathon Winner\nBest Project Award';
+}
+
+function getAISuggestions(){
+    document.getElementById('summary').value = expandTextAI(document.getElementById('summary').value,'summary');
+    document.getElementById('experience').value = expandTextAI(document.getElementById('experience').value,'experience');
+    document.getElementById('projects').value = expandTextAI(document.getElementById('projects').value,'projects');
+    alert('AI suggestions applied! Your text has been expanded and enhanced.');
+}
+
+function generateResume(){
+    const template = document.getElementById('template').value;
+    const skillsArray = document.getElementById('skills').value.split(',').map(s=>s.trim());
+    const projectsArray = document.getElementById('projects').value.split('\n').map(s=>s.trim());
+
+    const resumeHTML = `<div class="${template}">
+        <h2>${document.getElementById('name').value}</h2>
+        <p><i class="fas fa-envelope"></i> ${document.getElementById('email').value} | <i class="fas fa-phone"></i> ${document.getElementById('phone').value}</p>
+        <p><i class="fab fa-linkedin"></i> ${document.getElementById('linkedin').value} | <i class="fab fa-github"></i> ${document.getElementById('github').value}</p>
+        <div class="resume-section"><h3><i class="fas fa-user"></i> Summary</h3><p>${document.getElementById('summary').value}</p></div>
+        <div class="resume-section"><h3><i class="fas fa-lightbulb"></i> Skills</h3><div class="skills-grid">${skillsArray.map(s=>'<div class="skill-item">'+s+'</div>').join('')}</div></div>
+        <div class="resume-section"><h3><i class="fas fa-briefcase"></i> Experience</h3><p>${document.getElementById('experience').value}</p></div>
+        <div class="resume-section"><h3><i class="fas fa-graduation-cap"></i> Education</h3><p>${document.getElementById('education').value}</p></div>
+        <div class="resume-section"><h3><i class="fas fa-project-diagram"></i> Projects</h3><div class="projects-grid">${projectsArray.map(p=>'<div class="project-item">'+p+'</div>').join('')}</div></div>
+        <div class="resume-section"><h3><i class="fas fa-trophy"></i> Achievements</h3><p>${document.getElementById('achievements').value.split('\n').map(l=>'• '+l).join('<br>')}</p></div>
+    </div>`;
+    document.getElementById('resumePreview').innerHTML = resumeHTML;
+}
+
+async function downloadPDF(){
+    const resume = document.getElementById('resumePreview');
+    if(!resume.innerHTML) return alert('Generate resume first!');
+    const canvas = await html2canvas(resume);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jspdf.jsPDF();
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData,'PNG',0,0,pdfWidth,pdfHeight);
+    pdf.save('AIRESUME.pdf');
+}
+</script>
+</body>
+</html>
